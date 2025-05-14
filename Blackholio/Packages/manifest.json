@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.clockworklabs.spacetimedbsdk": "https://github.com/clockworklabs/com.clockworklabs.spacetimedbsdk.git",
     "com.unity.2d.animation": "10.2.0",
     "com.unity.2d.aseprite": "1.2.4",
     "com.unity.2d.psdimporter": "10.1.0",
