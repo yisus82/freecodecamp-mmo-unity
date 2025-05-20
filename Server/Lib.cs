@@ -58,7 +58,7 @@ public static partial class Module
     }
 
     [Reducer(ReducerKind.ClientConnected)]
-    public static void Debug(ReducerContext ctx)
+    public static void Connect(ReducerContext ctx)
     {
         Log.Info($"{ctx.Sender} just connected to the server.");
     }
