@@ -131,6 +131,7 @@ GameObject:
   - component: {fileID: 519420031}
   - component: {fileID: 519420029}
   - component: {fileID: 519420030}
+  - component: {fileID: 519420033}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -256,6 +257,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &519420033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519420028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe9df9487d164435382d4bfef272c37e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0
@@ -351,6 +364,7 @@ GameObject:
   - component: {fileID: 1058750613}
   - component: {fileID: 1058750612}
   - component: {fileID: 1058750614}
+  - component: {fileID: 1058750615}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -370,6 +384,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 918f1ffb82e81496ba8b86d2f36e2118, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  borderThickness: 2
+  borderMaterial: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
 --- !u!4 &1058750613
 Transform:
   m_ObjectHideFlags: 0
@@ -397,6 +413,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e016ef92e52934343857fd26e55140c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1058750615
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1058750611}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 632e5ca6b88024f1687a687764869213, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CirclePrefab: {fileID: 7449819168269692919, guid: cdf305226f8f0454094b9bc769dfaa98, type: 3}
+  FoodPrefab: {fileID: 8879622094190093876, guid: bc38abe03796143a38d9c78c94a61917, type: 3}
+  PlayerPrefab: {fileID: 1305872470944484179, guid: 0d56ed25fdb8b4dc0a19c385cc0894e5, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

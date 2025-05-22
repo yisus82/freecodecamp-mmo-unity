@@ -25,7 +25,9 @@ namespace SpacetimeDB.Types
             AddTable(Config = new(conn));
             AddTable(Entity = new(conn));
             AddTable(Food = new(conn));
+            AddTable(LoggedOutPlayer = new(conn));
             AddTable(Player = new(conn));
+            AddTable(SpawnFoodTimer = new(conn));
         }
     }
 
@@ -469,7 +471,10 @@ namespace SpacetimeDB.Types
             var encodedArgs = update.ReducerCall.Args;
             return update.ReducerCall.ReducerName switch
             {
-                "Debug" => BSATNHelpers.Decode<Reducer.Debug>(encodedArgs),
+                "Connect" => BSATNHelpers.Decode<Reducer.Connect>(encodedArgs),
+                "Disconnect" => BSATNHelpers.Decode<Reducer.Disconnect>(encodedArgs),
+                "EnterGame" => BSATNHelpers.Decode<Reducer.EnterGame>(encodedArgs),
+                "SpawnFood" => BSATNHelpers.Decode<Reducer.SpawnFood>(encodedArgs),
                 var reducer => throw new ArgumentOutOfRangeException("Reducer", $"Unknown reducer {reducer}")
             };
         }
@@ -491,7 +496,10 @@ namespace SpacetimeDB.Types
             var eventContext = (ReducerEventContext)context;
             return reducer switch
             {
-                Reducer.Debug args => Reducers.InvokeDebug(eventContext, args),
+                Reducer.Connect args => Reducers.InvokeConnect(eventContext, args),
+                Reducer.Disconnect args => Reducers.InvokeDisconnect(eventContext, args),
+                Reducer.EnterGame args => Reducers.InvokeEnterGame(eventContext, args),
+                Reducer.SpawnFood args => Reducers.InvokeSpawnFood(eventContext, args),
                 _ => throw new ArgumentOutOfRangeException("Reducer", $"Unknown reducer {reducer}")
             };
         }
