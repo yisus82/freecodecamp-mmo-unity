@@ -220,6 +220,25 @@ public static partial class Module
 
     public static float MassToMaxMoveSpeed(uint mass) => 2f * START_PLAYER_SPEED / (1f + MathF.Sqrt((float)mass / START_PLAYER_MASS));
 
+    private const float MINIMUM_SAFE_MASS_RATIO = 0.85f;
+
+    public static bool IsOverlapping(Entity a, Entity b)
+    {
+        var dx = a.position.x - b.position.x;
+        var dy = a.position.y - b.position.y;
+        var distance_sq = dx * dx + dy * dy;
+
+        var radius_a = MassToRadius(a.mass);
+        var radius_b = MassToRadius(b.mass);
+
+        // If the distance between the two circle centers is less than the
+        // maximum radius, then the center of the smaller circle is inside
+        // the larger circle. This gives some leeway for the circles to overlap
+        // before being eaten.
+        var max_radius = radius_a > radius_b ? radius_a : radius_b;
+        return distance_sq <= max_radius * max_radius;
+    }
+
     [Reducer]
     public static void MoveAllPlayers(ReducerContext ctx, MoveAllPlayersTimer timer)
     {
@@ -234,6 +253,39 @@ public static partial class Module
             var new_pos = circle_entity.position + direction * MassToMaxMoveSpeed(circle_entity.mass);
             circle_entity.position.x = Math.Clamp(new_pos.x, circle_radius, world_size - circle_radius);
             circle_entity.position.y = Math.Clamp(new_pos.y, circle_radius, world_size - circle_radius);
+
+            // Check collisions
+            foreach (var entity in ctx.Db.entity.Iter())
+            {
+                if (entity.entity_id == circle_entity.entity_id)
+                {
+                    continue;
+                }
+                if (IsOverlapping(circle_entity, entity))
+                {
+                    // Check to see if we're overlapping with food
+                    if (ctx.Db.food.entity_id.Find(entity.entity_id).HasValue)
+                    {
+                        ctx.Db.entity.entity_id.Delete(entity.entity_id);
+                        ctx.Db.food.entity_id.Delete(entity.entity_id);
+                        circle_entity.mass += entity.mass;
+                    }
+
+                    // Check to see if we're overlapping with another circle owned by another player
+                    var other_circle = ctx.Db.circle.entity_id.Find(entity.entity_id);
+                    if (other_circle.HasValue &&
+                        other_circle.Value.player_id != circle.player_id)
+                    {
+                        var mass_ratio = (float)entity.mass / circle_entity.mass;
+                        if (mass_ratio < MINIMUM_SAFE_MASS_RATIO)
+                        {
+                            ctx.Db.entity.entity_id.Delete(entity.entity_id);
+                            ctx.Db.circle.entity_id.Delete(entity.entity_id);
+                            circle_entity.mass += entity.mass;
+                        }
+                    }
+                }
+            }
             ctx.Db.entity.entity_id.Update(circle_entity);
         }
     }
