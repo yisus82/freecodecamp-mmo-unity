@@ -20,13 +20,6 @@ public static partial class Module
         public ulong world_size;
     }
 
-    [Type]
-    public partial struct DbVector2(float x, float y)
-    {
-        public float x = x;
-        public float y = y;
-    }
-
     [Table(Name = "entity", Public = true)]
     public partial struct Entity
     {
@@ -74,6 +67,10 @@ public static partial class Module
         ctx.Db.spawn_food_timer.Insert(new SpawnFoodTimer
         {
             scheduled_at = new ScheduleAt.Interval(TimeSpan.FromMilliseconds(500))
+        });
+        ctx.Db.move_all_players_timer.Insert(new MoveAllPlayersTimer
+        {
+            scheduled_at = new ScheduleAt.Interval(TimeSpan.FromMilliseconds(50))
         });
     }
 
@@ -196,5 +193,48 @@ public static partial class Module
             last_split_time = (ulong)timestamp.ToUnixTimeMilliseconds(),
         });
         return entity;
+    }
+
+    [Reducer]
+    public static void UpdatePlayerInput(ReducerContext ctx, DbVector2 direction)
+    {
+        var player = ctx.Db.player.identity.Find(ctx.Sender) ?? throw new Exception("Player not found");
+        foreach (var c in ctx.Db.circle.player_id.Filter(player.player_id))
+        {
+            var circle = c;
+            circle.direction = direction.Normalized;
+            circle.speed = Math.Clamp(direction.Magnitude, 0f, 1f);
+            ctx.Db.circle.entity_id.Update(circle);
+        }
+    }
+
+    [Table(Name = "move_all_players_timer", Scheduled = nameof(MoveAllPlayers), ScheduledAt = nameof(scheduled_at))]
+    public partial struct MoveAllPlayersTimer
+    {
+        [PrimaryKey, AutoInc]
+        public ulong scheduled_id;
+        public ScheduleAt scheduled_at;
+    }
+
+    private const uint START_PLAYER_SPEED = 10;
+
+    public static float MassToMaxMoveSpeed(uint mass) => 2f * START_PLAYER_SPEED / (1f + MathF.Sqrt((float)mass / START_PLAYER_MASS));
+
+    [Reducer]
+    public static void MoveAllPlayers(ReducerContext ctx, MoveAllPlayersTimer timer)
+    {
+        var world_size = (ctx.Db.config.id.Find(0) ?? throw new Exception("Config not found")).world_size;
+
+        // Handle player input
+        foreach (var circle in ctx.Db.circle.Iter())
+        {
+            var circle_entity = ctx.Db.entity.entity_id.Find(circle.entity_id) ?? throw new Exception("Circle has no entity");
+            var circle_radius = MassToRadius(circle_entity.mass);
+            var direction = circle.direction * circle.speed;
+            var new_pos = circle_entity.position + direction * MassToMaxMoveSpeed(circle_entity.mass);
+            circle_entity.position.x = Math.Clamp(new_pos.x, circle_radius, world_size - circle_radius);
+            circle_entity.position.y = Math.Clamp(new_pos.y, circle_radius, world_size - circle_radius);
+            ctx.Db.entity.entity_id.Update(circle_entity);
+        }
     }
 }
